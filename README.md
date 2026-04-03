@@ -3,6 +3,10 @@
 Портфолио-проект интернет-магазина с акцентом на интерактивный UI,
 lazy loading изображений, калькулятор доставки, корзину и имитацию аналитики.
 
+## Живая версия
+
+[https://cherreshenka1.github.io/optimized-ecommerce-store/](https://cherreshenka1.github.io/optimized-ecommerce-store/)
+
 ## Что есть
 
 - Каталог товаров с фильтрами по категории
