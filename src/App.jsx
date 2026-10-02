@@ -19,8 +19,7 @@ function sendAnalyticsEvent(type, payload) {
     timestamp: new Date().toISOString(),
   }
 
-  console.log('[Yandex.Metrika]', event)
-  console.log('[Google Analytics]', event)
+  // Local activity log; no external analytics calls.
   return event
 }
 
@@ -56,7 +55,7 @@ function ProductCard({ product, onAdd }) {
         <p>{product.description}</p>
         <div className="product-bottom">
           <strong>{product.price.toLocaleString('ru-RU')} ₽</strong>
-          <span>★ {product.rating}</span>
+          <span>Коллекция 2026</span>
         </div>
         <button type="button" className="buy-btn" onClick={() => onAdd(product)}>
           Добавить в корзину
@@ -74,6 +73,7 @@ export default function App() {
   const [analyticsFeed, setAnalyticsFeed] = useState([
     { type: 'page_view', payload: 'Главная витрина', timestamp: new Date().toISOString() },
   ])
+  const [checkoutStatus, setCheckoutStatus] = useState('')
   const [webVitals, setWebVitals] = useState({ lcp: '—', cls: '—', fcp: '—' })
 
   useEffect(() => {
@@ -137,6 +137,7 @@ export default function App() {
   )
 
   const deliveryPrice = useMemo(() => {
+    if (!cart.length) return 0
     const regionFactor = city === 'Москва' ? 1 : city === 'Санкт-Петербург' ? 1.15 : 1.35
     const methodFactor = deliveryType === 'Пункт выдачи' ? 0.75 : 1
     const base = cart.length ? Math.max(...cart.map((item) => item.deliveryBase)) : 390
@@ -144,6 +145,7 @@ export default function App() {
   }, [cart, city, deliveryType])
 
   const addToCart = (product) => {
+    setCheckoutStatus('')
     setCart((current) => {
       const sameItem = current.find((item) => item.id === product.id)
       if (sameItem) {
@@ -160,18 +162,21 @@ export default function App() {
   }
 
   const removeFromCart = (id) => {
+    setCheckoutStatus('')
     setCart((current) => current.filter((item) => item.id !== id))
   }
 
+  const saveOrder = () => {
+    const receipt = {id: `DEMO-${Date.now().toString().slice(-6)}`, items: cart, city, deliveryType, deliveryPrice, total: cartTotal + deliveryPrice}
+    try { localStorage.setItem('predmet-last-order', JSON.stringify(receipt)); setCheckoutStatus(`Заказ ${receipt.id} сохранён в этом браузере: ${receipt.total.toLocaleString('ru-RU')} ₽. ${city}, ${deliveryType.toLowerCase()}. Оплата не проводилась.`) }
+    catch { setCheckoutStatus('Не удалось сохранить заказ: хранилище браузера недоступно.') }
+  }
   return (
     <div className="store-shell">
       <header className="store-hero">
-        <p className="eyebrow">Digital Agency St</p>
-        <h1>Оптимизированный интернет-магазин с lazy loading и performance-метриками</h1>
-        <p className="hero-text">
-          Портфолио-витрина с интерактивными карточками, калькулятором доставки,
-          корзиной и имитацией аналитики Яндекс.Метрики + Google Analytics.
-        </p>
+        <p className="eyebrow">Предмет · магазин-концепция</p>
+        <h1>Хорошие вещи для рабочих будней</h1>
+        <p className="hero-text">Свет, звук и удобные детали для вашего рабочего места. Выберите своё — стоимость доставки посчитаем сразу.</p>
       </header>
 
       <section className="toolbar-row">
@@ -209,7 +214,7 @@ export default function App() {
                 <div className="cart-line" key={item.id}>
                   <div>
                     <strong>{item.title}</strong>
-                    <p>{item.quantity} × {item.price.toLocaleString('ru-RU')} ₽</p>
+                    <p><button type="button" aria-label={`Уменьшить количество ${item.title}`} disabled={item.quantity <= 1} onClick={()=>{setCheckoutStatus(''); setCart(current=>current.map(row=>row.id===item.id?{...row,quantity:row.quantity-1}:row))}}>−</button> {item.quantity} <button type="button" aria-label={`Увеличить количество ${item.title}`} onClick={()=>addToCart(item)}>+</button> × {item.price.toLocaleString('ru-RU')} ₽</p>
                   </div>
                   <button type="button" onClick={() => removeFromCart(item.id)}>
                     Удалить
@@ -222,7 +227,7 @@ export default function App() {
           <div className="delivery-box">
             <label>
               Город доставки
-              <select value={city} onChange={(event) => setCity(event.target.value)}>
+              <select value={city} onChange={(event) => {setCity(event.target.value); setCheckoutStatus('')}}>
                 <option>Москва</option>
                 <option>Санкт-Петербург</option>
                 <option>Казань</option>
@@ -233,7 +238,7 @@ export default function App() {
               Способ доставки
               <select
                 value={deliveryType}
-                onChange={(event) => setDeliveryType(event.target.value)}
+                onChange={(event) => {setDeliveryType(event.target.value); setCheckoutStatus('')}}
               >
                 <option>Курьер</option>
                 <option>Пункт выдачи</option>
@@ -254,7 +259,7 @@ export default function App() {
             </div>
           </div>
 
-          <div className="analytics-box">
+          <button type="button" className="buy-btn" disabled={!cart.length} onClick={saveOrder}>Сохранить демо-заказ</button><p role="status" className="demo-note">{checkoutStatus || 'Демонстрационный магазин. Оплата и доставка не подключены.'}</p><details className="diagnostics"><summary>Диагностика интерфейса</summary><div className="analytics-box">
             <p className="eyebrow">Аналитика</p>
             {analyticsFeed.map((event, index) => (
               <div className="analytics-item" key={`${event.timestamp}-${index}`}>
@@ -262,11 +267,11 @@ export default function App() {
                 <strong>{String(event.payload)}</strong>
               </div>
             ))}
-          </div>
+          </div></details>
         </aside>
       </main>
 
-      <footer className="perf-footer">
+      <footer className="perf-footer" aria-label="Измерения текущей загрузки">
         <span>LCP: {webVitals.lcp}</span>
         <span>FCP: {webVitals.fcp}</span>
         <span>CLS: {webVitals.cls}</span>
