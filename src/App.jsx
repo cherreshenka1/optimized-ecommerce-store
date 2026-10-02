@@ -1,3 +1,4 @@
+import OpenContext from './OpenContext.jsx'
 import { useEffect, useMemo, useState } from 'react'
 import { categories, products } from './data.js'
 
@@ -29,6 +30,7 @@ function ProductCard({ product, onAdd }) {
   return (
     <article className="product-card">
       <div className="slider-shell">
+
         <img
           src={product.images[slide]}
           alt={product.title}
@@ -55,7 +57,7 @@ function ProductCard({ product, onAdd }) {
         <p>{product.description}</p>
         <div className="product-bottom">
           <strong>{product.price.toLocaleString('ru-RU')} ₽</strong>
-          <span>Коллекция 2026</span>
+          <span>Учебная цена</span>
         </div>
         <button type="button" className="buy-btn" onClick={() => onAdd(product)}>
           Добавить в корзину
@@ -173,6 +175,7 @@ export default function App() {
   }
   return (
     <div className="store-shell">
+      <header className="product-topbar"><a href="#workspace">предмет. / Для рабочего места</a><nav><a href="#workspace">Рабочая область</a><a href="#open-data">Справочник</a><a href="https://cherreshenka1.github.io/portfolio/">Портфолио ↗</a></nav><span className="monogram">АБ</span></header>
       <header className="store-hero">
         <p className="eyebrow">Предмет · магазин-концепция</p>
         <h1>Хорошие вещи для рабочих будней</h1>
@@ -196,7 +199,7 @@ export default function App() {
         <div className="cart-counter">В корзине: {cart.reduce((sum, item) => sum + item.quantity, 0)}</div>
       </section>
 
-      <main className="shop-grid">
+      <main id="workspace" className="shop-grid">
         <section className="catalog-grid">
           {visibleProducts.map((product) => (
             <ProductCard key={product.id} product={product} onAdd={addToCart} />
@@ -276,6 +279,7 @@ export default function App() {
         <span>FCP: {webVitals.fcp}</span>
         <span>CLS: {webVitals.cls}</span>
       </footer>
+      <OpenContext/>
     </div>
   )
 }
