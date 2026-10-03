@@ -1,5 +1,5 @@
 import OpenContext from './OpenContext.jsx'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { categories, products } from './data.js'
 
 const CART_KEY = 'optimized-store-cart'
@@ -38,7 +38,7 @@ function ProductCard({ product, onAdd }) {
           width="800"
           height="600"
         />
-        <div className="slider-dots">
+        {product.images.length>1&&<div className="slider-dots">
           {product.images.map((image, index) => (
             <button
               type="button"
@@ -48,7 +48,7 @@ function ProductCard({ product, onAdd }) {
               aria-label={`Слайд ${index + 1}`}
             />
           ))}
-        </div>
+        </div>}
       </div>
 
       <div className="product-body">
@@ -68,6 +68,7 @@ function ProductCard({ product, onAdd }) {
 }
 
 export default function App() {
+  const basket = useRef(null)
   const [cart, setCart] = useState(readCart)
   const [activeCategory, setActiveCategory] = useState('Все')
   const [city, setCity] = useState('Москва')
@@ -175,12 +176,8 @@ export default function App() {
   }
   return (
     <div className="store-shell">
-      <header className="product-topbar"><a href="#workspace">предмет. / Для рабочего места</a><nav><a href="#workspace">Рабочая область</a><a href="#open-data">Справочник</a><a href="https://cherreshenka1.github.io/portfolio/">Портфолио ↗</a></nav><span className="monogram">АБ</span></header>
-      <header className="store-hero">
-        <p className="eyebrow">Предмет · магазин-концепция</p>
-        <h1>Хорошие вещи для рабочих будней</h1>
-        <p className="hero-text">Свет, звук и удобные детали для вашего рабочего места. Выберите своё — стоимость доставки посчитаем сразу.</p>
-      </header>
+      <header className="store-nav"><a className="store-logo" href="#workspace">предмет.</a><a href="#workspace">Коллекция</a><a href="https://cherreshenka1.github.io/portfolio/">Портфолио ↗</a><button onClick={()=>basket.current.showModal()}>Корзина ({cart.reduce((sum,item)=>sum+item.quantity,0)})</button></header>
+      <header className="store-hero"><div><p className="eyebrow">Для рабочего места и для себя</p><h1>Меньше вещей.<br/>Больше смысла.</h1><p>Свет, звук и детали, с которыми приятно проводить каждый день.</p><a className="shop-link" href="#workspace">Смотреть коллекцию ↗</a></div><img src="./photos/headphones.jpg" alt="Наушники, предметная фотография"/></header>
 
       <section className="toolbar-row">
         <div className="filters-pills">
@@ -196,7 +193,7 @@ export default function App() {
           ))}
         </div>
 
-        <div className="cart-counter">В корзине: {cart.reduce((sum, item) => sum + item.quantity, 0)}</div>
+        <span className="cart-counter">Коллекция рабочего дня</span>
       </section>
 
       <main id="workspace" className="shop-grid">
@@ -206,7 +203,7 @@ export default function App() {
           ))}
         </section>
 
-        <aside className="cart-panel">
+        <dialog className="cart-panel" ref={basket} aria-label="Корзина и доставка"><button className="close-cart" onClick={()=>basket.current.close()} aria-label="Закрыть корзину">×</button>
           <h2>Корзина и доставка</h2>
 
           {cart.length === 0 ? (
@@ -271,7 +268,7 @@ export default function App() {
               </div>
             ))}
           </div></details>
-        </aside>
+        </dialog>
       </main>
 
       <footer className="perf-footer" aria-label="Измерения текущей загрузки">
@@ -279,7 +276,7 @@ export default function App() {
         <span>FCP: {webVitals.fcp}</span>
         <span>CLS: {webVitals.cls}</span>
       </footer>
-      <OpenContext/>
+      <details className="sources" id="sources"><summary>О коллекции и фотографиях</summary><OpenContext/></details>
     </div>
   )
 }
